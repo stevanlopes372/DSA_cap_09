@@ -25,7 +25,7 @@ View(sleep)
 # 1- os dados são aleatórios e representativos da população
 # 2- A variável dependente é contínua
 # 3- Ambos os grupos são independentes (exaustivos excludentes)
-# 4- Os resíduos do modeo são normalmente distribuídos
+# 4- Os resíduos do modelo são normalmente distribuídos
 # 5- A variância residual é homogênea (princípio da homocedasticidade). _
   # Isso significa dizer que a variÂncia entre os dois grupos é a mesma
 
@@ -77,6 +77,14 @@ var.test(extra ~ group, data = sleep)
 
 # O valor-p é de 0.7983426, logo, maior que 0.05. Falhamos em rejeitar a H0.
 # Não há diferença significativa enre as variâncias dos 2 grupos.
+
+
+
+
+
+
+
+
 
 
 #Finalizado as validações das suposições 4 e 5, podemos aplicar o teste T
