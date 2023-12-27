@@ -13,6 +13,7 @@ getwd()
 # Pacotes
 install.packages("dplyr")
 install.packages('nycflights13')
+
 library('ggplot2')
 library('dplyr')
 library('nycflights13')
@@ -25,7 +26,10 @@ View(flights)
 
 # H0 = Não há diferença estatisticamente significativa entre os atrasos de vôo _
   # da DL e da UA
+# atraso DL = atraso UA
+
 # HA = Os atrasos nos vôos da DL são mais longos que os da UA
+# atraso DL > atraso UA
 
 
 
@@ -54,8 +58,10 @@ View(pop_data)
 # dataset pop_data apenas com dados da companhia DL para amostra 1 e apenas dados 
 # da companhia UA na amostra 2
 
+# DL = amostra 1
+# UA = amostra 2
+
 pop_data_DL <- subset(pop_data, Companhia == "DL")
-?sample
 pop_data_DL <- pop_data_DL[sample(nrow(pop_data_DL), 1000), ]
 View(pop_data_DL)
 
@@ -78,7 +84,16 @@ View(pop_data)
 # Exercício 4 - Calcule o intervalo de confiança (95%) da amostra1
 # Usamos a fórmula: erro_padrao_amostra1 = sd(amostra1$arr_delay) / sqrt(nrow(amostra1))
 
-*****************************************************PArei aqui*******************************************************************
+#opção 1
+erro_padrao_DL = sd(pop_data_DL$Atraso, na.rm = TRUE) / sqrt(nrow(pop_data_DL))
+erro_padrao_DL
+
+#opção 2
+t_test_ua <- t.test(pop_data_UA$Atraso)
+ic_ua <- t_test_ua$conf.int
+mean_ua <- t_test_ua$estimate
+
+
 
 # Esta fórmula é usada para calcular o desvio padrão de uma distribuição da média amostral
 # (de um grande número de amostras de uma população). Em outras palavras, só é aplicável 
@@ -112,20 +127,86 @@ erro_padrao_amostra1 = sd(amostra1$arr_delay) / sqrt(nrow(amostra1))
 
 # Exercício 5 - Calcule o intervalo de confiança (95%) da amostra2
 
+#opção 1
+erro_padrao_UA = sd(pop_data_UA$Atraso, na.rm = TRUE) / sqrt(nrow(pop_data_UA))
+erro_padrao_UA
 
+#opção 2
+t_test_dl <- t.test(pop_data_DL$Atraso)
+ic_dl <- t_test_dl$conf.int
+mean_dl <- t_test_dl$estimate
 
 # Exercício 6 - Crie um plot Visualizando os intervalos de confiança criados nos itens anteriores
 # Dica: Use o geom_point() e geom_errorbar() do pacote ggplot2
 
+df_ic_appended <- data.frame(Companhia = c("UA", "DL"))
+df_ic_appended$Mean <- c(mean_ua, mean_dl)
+df_ic_appended$Min <- c(ic_ua[1], ic_dl[1])
+df_ic_appended$Max <- c(ic_ua[2], ic_dl[2])
+
+ggplot(df_ic_appended, aes(x=Companhia, y=Mean)) + 
+  geom_point() +
+  geom_errorbar(aes(ymin=Min, ymax=Max), width=0.2)
 
 
 # Exercício 7 - Podemos dizer que muito provavelmente, as amostras vieram da mesma população? 
 # Por que?
-
+resultado_teste <- t.test(pop_data_UA$Atraso, pop_data_DL$Atraso)
+#sendo p-value = 0,0365, ou seja, menor que 0,05, nós podemos não rejeitar a hipótese nula.
+#Isso pode ser interpretado como não tendo evidência suficiente para concluir que as médias das duas populações são diferentes, ou seja, as amostras podem ter vindo da mesma população.
 
 
 # Exercício 8 - Crie um teste de hipótese para verificar se os voos da Delta Airlines (DL)
 # atrasam mais do que os voos da UA (United Airlines)
 
 # H0 e H1 devem ser mutuamente exclusivas.
+
+
+# H0 = Não há diferença estatisticamente significativa entre os atrasos de vôo _
+# da DL e da UA
+# atraso DL = atraso UA
+
+# HA = Os atrasos nos vôos da DL são mais longos que os da UA
+# atraso DL > atraso UA
+
+
+# para o teste t funcionar precisamos de 5 condições:
+# 1- os dados são aleatórios e representativos da população
+# 2- A variável dependente é contínua
+# 3- Ambos os grupos são independentes (exaustivos excludentes)
+# 4- Os resíduos do modelo são normalmente distribuídos
+# 5- A variância residual é homogênea (princípio da homocedasticidade) _
+# Isso significa dizer que a variÂncia entre os dois grupos é a mesma
+
+
+
+# 1- os dados são aleatórios e representativos da população
+  # ok - utilizamos uma amostra de 1000 itens aleatórios para ambas as companhias
+
+
+# 2- A variável dependente é contínua
+  # ok
+
+
+# 3- Ambos os grupos são independentes (exaustivos excludentes)
+  # sabemos que uma companhia pode influenciar nos horários de outra companhia (como por exemplo atrasos cumulativos).
+  # mas para fins didáticos aceitaremos esse item como OK
+
+
+
+# 4- Os resíduos do modelo são normalmente distribuídos
+#verificando DL
+shapiro.test(pop_data_DL$Atraso)
+
+#verificando UA
+shapiro.test(pop_data_UA$Atraso)
+
+#verificado que ambos possuem p-value menor que 0,05 (2,2e-16), o que nos permite assumir distribuição normal
+
+
+
+# 5- A variância residual é homogênea (princípio da homocedasticidade) _
+# Isso significa dizer que a variÂncia entre os dois grupos é a mesma
+
+var.test(pop_data_DL$Atraso, pop_data_UA$Atraso)
 
