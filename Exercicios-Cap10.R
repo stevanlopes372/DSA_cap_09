@@ -6,17 +6,18 @@
 # Configurando o diretório de trabalho
 # Coloque entre aspas o diretório de trabalho que você está usando no seu computador
 # Não use diretórios com espaço no nome
+
 setwd("C:/Users/neo2g/OneDrive/Documentos/Github Repos/Data-Science-Academy/DSA Files/Cap 10")
 getwd()
 
 
 # Pacotes
 install.packages("dplyr")
-install.packages('nycflights13')
+install.packages("nycflights13")
 
-library('ggplot2')
-library('dplyr')
-library('nycflights13')
+library("ggplot2")
+library("dplyr")
+library("nycflights13")
 View(flights)
 ?flights
 
@@ -25,7 +26,7 @@ View(flights)
 # atrasam mais do que os voos da UA (United Airlines)
 
 # H0 = Não há diferença estatisticamente significativa entre os atrasos de vôo _
-  # da DL e da UA
+# da DL e da UA
 # atraso DL = atraso UA
 
 # HA = Os atrasos nos vôos da DL são mais longos que os da UA
@@ -35,7 +36,7 @@ View(flights)
 
 ##### ATENÇÃO #####
 # Você vai precisar do conhecimento adquirido em outros capítulos do curso 
-  # estudados até aqui para resolver esta lista de exercícios!
+# estudados até aqui para resolver esta lista de exercícios!
 
 
 # Exercício 1 - Construa o dataset pop_data com os dados de voos das 
@@ -50,7 +51,9 @@ class(flights)
 nome_companhia <- c(flights$carrier)
 atraso <- c(flights$arr_delay)
 pop_data <- data_frame(Companhia = nome_companhia, Atraso = atraso)
-pop_data <- pop_data[pop_data$Companhia == 'UA' | pop_data$Companhia == "DL", ]
+pop_data <- pop_data[pop_data$Companhia == "UA" | pop_data$Companhia == "DL", ]
+pop_data <- pop_data[pop_data$Atraso >= 0, ]
+pop_data <- na.omit(pop_data)
 View(pop_data)
 
 
@@ -64,11 +67,13 @@ View(pop_data)
 pop_data_DL <- subset(pop_data, Companhia == "DL")
 pop_data_DL <- pop_data_DL[sample(nrow(pop_data_DL), 1000), ]
 View(pop_data_DL)
+write.csv(pop_data_DL, file = "pop_data_dl.csv", row.names = FALSE)
 
 
 pop_data_UA <- subset(pop_data, Companhia == "UA")
 pop_data_UA <- pop_data_UA[sample(nrow(pop_data_UA),1000), ]
 View(pop_data_UA)
+write.csv(pop_data_UA, file = "pop_data_ua.csv", row.names = FALSE)
 
 # Dica: inclua uma coluna chamada sample_id preenchida com número 1 para a primeira 
   # amostra e 2 para a segunda amostra
@@ -83,17 +88,6 @@ View(pop_data)
 
 # Exercício 4 - Calcule o intervalo de confiança (95%) da amostra1
 # Usamos a fórmula: erro_padrao_amostra1 = sd(amostra1$arr_delay) / sqrt(nrow(amostra1))
-
-#opção 1
-erro_padrao_DL = sd(pop_data_DL$Atraso, na.rm = TRUE) / sqrt(nrow(pop_data_DL))
-erro_padrao_DL
-
-#opção 2
-t_test_ua <- t.test(pop_data_UA$Atraso)
-ic_ua <- t_test_ua$conf.int
-mean_ua <- t_test_ua$estimate
-
-
 
 # Esta fórmula é usada para calcular o desvio padrão de uma distribuição da média amostral
 # (de um grande número de amostras de uma população). Em outras palavras, só é aplicável 
@@ -115,23 +109,15 @@ mean_ua <- t_test_ua$estimate
 # e atende a condição de independência n <= 10% do tamanho da população.
 
 # Erro padrão
-erro_padrao_amostra1 = sd(amostra1$arr_delay) / sqrt(nrow(amostra1))
-
-# Limites inferior e superior
-# 1.96 é o valor de z score para 95% de confiança
+# erro_padrao_amostra1 = sd(amostra1$arr_delay) / sqrt(nrow(amostra1))
 
 
-# Intervalo de confiança
-
+t_test_ua <- t.test(pop_data_UA$Atraso)
+ic_ua <- t_test_ua$conf.int
+mean_ua <- t_test_ua$estimate
 
 
 # Exercício 5 - Calcule o intervalo de confiança (95%) da amostra2
-
-#opção 1
-erro_padrao_UA = sd(pop_data_UA$Atraso, na.rm = TRUE) / sqrt(nrow(pop_data_UA))
-erro_padrao_UA
-
-#opção 2
 t_test_dl <- t.test(pop_data_DL$Atraso)
 ic_dl <- t_test_dl$conf.int
 mean_dl <- t_test_dl$estimate
@@ -149,11 +135,15 @@ ggplot(df_ic_appended, aes(x=Companhia, y=Mean)) +
   geom_errorbar(aes(ymin=Min, ymax=Max), width=0.2)
 
 
-# Exercício 7 - Podemos dizer que muito provavelmente, as amostras vieram da mesma população? 
+# Exercício 7 - Podemos dizer que muito provavelmente, as amostras vieram da _
+  # mesma população? 
 # Por que?
-resultado_teste <- t.test(pop_data_UA$Atraso, pop_data_DL$Atraso)
-#sendo p-value = 0,0365, ou seja, menor que 0,05, nós podemos não rejeitar a hipótese nula.
-#Isso pode ser interpretado como não tendo evidência suficiente para concluir que as médias das duas populações são diferentes, ou seja, as amostras podem ter vindo da mesma população.
+resultado_teste <- t.test(pop_data_UA$Atraso, pop_data_DL$Atraso, alternative = "greater")
+#sendo p-value = 0,5613, ou seja, maior que 0,05, nós falhamos em rejeitar a _
+  # hipótese nula.
+#Isso pode ser interpretado como tendo evidência suficiente para concluir que _
+  # as médias das duas populações NÃO são diferentes, ou seja, as amostras podem _
+  # ter vindo da mesma população.
 
 
 # Exercício 8 - Crie um teste de hipótese para verificar se os voos da Delta Airlines (DL)
